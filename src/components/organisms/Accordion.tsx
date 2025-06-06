@@ -57,6 +57,8 @@ const Accordion: React.FC<AccordionProps> = ({
 						<div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
 						<div className="h-4 bg-gray-300 rounded w-1/2"></div>
 					</div>
+				) : repos.length === 0 && isOpen ? (
+					<div className="text-gray-700">No repositories to display.</div>
 				) : (
 					<ul className="flex flex-col gap-2">
 						{repos.map(repo => (

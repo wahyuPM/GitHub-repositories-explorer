@@ -37,9 +37,6 @@ function App() {
 
 	const handleUserClick = (username: string) => {
 		setSelectedUser(prevUser => (prevUser === username ? null : username));
-		// if (selectedUser !== username) {
-		// 	refetchRepos();
-		// }
 	};
 
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
