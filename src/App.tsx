@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import { Input, Button } from './components/atoms';
+import { Accordion } from './components/organisms';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUsers, fetchUserRepos } from './http/users';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
 	const [searchTerm, setSearchTerm] = useState('');
@@ -18,18 +20,13 @@ function App() {
 		refetch: refetchUsers,
 	} = useQuery({
 		queryKey: userQueryKey,
-		queryFn: () => fetchUsers(searchTerm),
+		queryFn: ({ signal }) => fetchUsers(signal, searchTerm),
 		enabled: false,
 	});
 
-	const {
-		data: repos,
-		isLoading: isLoadingRepos,
-		error: repoError,
-		refetch: refetchRepos,
-	} = useQuery({
+	const { data: repos, isLoading: isLoadingRepos } = useQuery({
 		queryKey: repoQueryKey,
-		queryFn: () => fetchUserRepos(selectedUser!),
+		queryFn: ({ signal }) => fetchUserRepos(signal, selectedUser!),
 		enabled: !!selectedUser,
 	});
 
@@ -39,8 +36,10 @@ function App() {
 	};
 
 	const handleUserClick = (username: string) => {
-		setSelectedUser(username);
-		refetchRepos();
+		setSelectedUser(prevUser => (prevUser === username ? null : username));
+		// if (selectedUser !== username) {
+		// 	refetchRepos();
+		// }
 	};
 
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -50,50 +49,48 @@ function App() {
 	};
 
 	return (
-		<div className="container mx-auto p-4">
-			<div className="flex flex-col gap-4">
-				<Input
-					value={searchTerm}
-					onChange={e => setSearchTerm(e.target.value)}
-					placeholder="Search GitHub users"
-					onKeyDown={handleKeyDown}
-				/>
-				<Button
-					onClick={handleSearch}
-					disabled={isLoadingUsers}
-					className="rounded-md"
-					loading={isLoadingUsers}
-				>
-					Search
-				</Button>
-				{userError && (
-					<div className="text-red-500">{(userError as Error).message}</div>
-				)}
-				<div>
-					{users?.map((user: any) => (
-						<div key={user.id} onClick={() => handleUserClick(user.login)}>
-							{user.login}
-						</div>
-					))}
+		<>
+			<div className="container mx-auto p-4">
+				<div className="flex flex-col gap-4">
+					<Input
+						value={searchTerm}
+						onChange={e => setSearchTerm(e.target.value)}
+						placeholder="Search GitHub users"
+						onKeyDown={handleKeyDown}
+					/>
+					<Button
+						onClick={handleSearch}
+						disabled={isLoadingUsers}
+						className="rounded-md"
+						loading={isLoadingUsers}
+					>
+						Search
+					</Button>
+					{users?.length > 0 && <p>Showing users for "{searchTerm}"</p>}
+					{userError && (
+						<div className="text-red-500">{(userError as Error).message}</div>
+					)}
+					{isLoadingUsers
+						? Array.from({ length: 5 }).map((_, i) => (
+								<div
+									key={i}
+									className="animate-pulse bg-gray-300 h-[56px] rounded"
+								></div>
+						  ))
+						: users?.map((user: any) => (
+								<Accordion
+									key={user.id}
+									user={user}
+									repos={selectedUser === user.login ? repos || [] : []}
+									onToggle={handleUserClick}
+									isOpen={selectedUser === user.login}
+									loading={isLoadingRepos && selectedUser === user.login}
+								/>
+						  ))}
 				</div>
-				{selectedUser && (
-					<div>
-						<h2>Repositories for {selectedUser}</h2>
-						{isLoadingRepos ? (
-							<div>Loading Repositories...</div>
-						) : repoError ? (
-							<div className="text-red-500">{(repoError as Error).message}</div>
-						) : (
-							<ul>
-								{repos?.map((repo: any) => (
-									<li key={repo.id}>{repo.name}</li>
-								))}
-							</ul>
-						)}
-					</div>
-				)}
 			</div>
-		</div>
+			<ToastContainer />
+		</>
 	);
 }
 
