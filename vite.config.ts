@@ -9,9 +9,6 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  build: {
-    outDir: 'build', // Ensure this matches the directory you want to deploy
-  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
