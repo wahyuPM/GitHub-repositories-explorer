@@ -54,3 +54,13 @@ npm run build
 # 5. Preview the production build
 npm run preview
 ```
+
+## 🔑 Environment Variables
+
+To run the application locally, you need to create a .env file in the root directory with the following content:
+
+```bash
+VITE_GITHUB_TOKEN = your_github_token_here
+```
+
+Replace your_github_token_here with your actual GitHub token. This token is required to authenticate requests to the GitHub API.
